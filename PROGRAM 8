@@ -1,0 +1,83 @@
+#include <stdio.h>
+
+#define MAX 100
+
+// Structure to store process details
+struct Process {
+    int id;
+    int arrivalTime;
+    int burstTime;
+    int remainingTime;
+    int completionTime;
+    int waitingTime;
+    int turnAroundTime;
+};
+
+int main() {
+    int n, i, timeQuantum, currentTime = 0, completed = 0;
+    float avgWaitingTime = 0, avgTurnAroundTime = 0;
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    struct Process processes[MAX];
+
+    // Input process details
+    for (i = 0; i < n; i++) {
+        processes[i].id = i + 1;
+        printf("Enter arrival time for process %d: ", processes[i].id);
+        scanf("%d", &processes[i].arrivalTime);
+        printf("Enter burst time for process %d: ", processes[i].id);
+        scanf("%d", &processes[i].burstTime);
+        processes[i].remainingTime = processes[i].burstTime; // Initialize remaining time
+    }
+
+    printf("Enter time quantum: ");
+    scanf("%d", &timeQuantum);
+
+    // Round Robin Scheduling Simulation
+    while (completed < n) {
+        int executed = 0;
+
+        for (i = 0; i < n; i++) {
+            if (processes[i].remainingTime > 0 && processes[i].arrivalTime <= currentTime) {
+                if (processes[i].remainingTime > timeQuantum) {
+                    currentTime += timeQuantum;
+                    processes[i].remainingTime -= timeQuantum;
+                } else {
+                    currentTime += processes[i].remainingTime;
+                    processes[i].completionTime = currentTime;
+                    processes[i].turnAroundTime = processes[i].completionTime - processes[i].arrivalTime;
+                    processes[i].waitingTime = processes[i].turnAroundTime - processes[i].burstTime;
+                    processes[i].remainingTime = 0;
+                    avgWaitingTime += processes[i].waitingTime;
+                    avgTurnAroundTime += processes[i].turnAroundTime;
+                    completed++;
+                }
+                executed = 1;
+            }
+        }
+
+        // If no process is executed, move time forward
+        if (!executed) {
+            currentTime++;
+        }
+    }
+
+    // Compute averages
+    avgWaitingTime /= n;
+    avgTurnAroundTime /= n;
+
+    // Display results
+    printf("\nProcess\tAT\tBT\tCT\tTAT\tWT\n");
+    for (i = 0; i < n; i++) {
+        printf("%d\t%d\t%d\t%d\t%d\t%d\n",
+               processes[i].id, processes[i].arrivalTime, processes[i].burstTime,
+               processes[i].completionTime, processes[i].turnAroundTime, processes[i].waitingTime);
+    }
+
+    printf("\nAverage Waiting Time: %.2f\n", avgWaitingTime);
+    printf("Average Turnaround Time: %.2f\n", avgTurnAroundTime);
+
+    return 0;
+}
